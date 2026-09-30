@@ -1,0 +1,17 @@
+[00:00] 如何在 RootData 平台上查看 ARK 项目相关资讯?
+[00:04] 下载﹑打开 RootData﹑你可以选择在手机应用商店下载 RootData App﹑或者直接通过浏览器访问
+[00:12] 3w.rootdata.com﹑搜索 OHM﹑在搜索栏输入 OHM 或奥林巴斯道﹑点击搜索﹑找到并进入奥林巴斯道﹑ OHM 的官方数据页面。
+[00:24] 进入官方数据页﹑打开后﹑向下滑动页面。
+[00:28] 在团队或相关信息区域, 可以看到团队成员信息其中包含 CarMelo CarMelo,
+[00:35] 点击 CarMelo CarMelo 的名字。
+[00:38] Root Data 会显示 CarMelo 参与的相关项目。
+[00:41] 在 CarMelo 关联的项目列表里, 可以看到 ARK,
+[00:45] 点击进入 ARK 的官方数据页面。
+[00:48] 查看 ARK 的投资方, 在 ARK 的页面中, 找到 Investors 投资方。
+[00:54] 可以清楚看到, MorganCrest Web SanFundation 是 ARK 的投资机构之一, 点击 MorganCrest Web SanFundation。
+[01:02] 页面会跳转到 MorganCrest 的机构详情,并且跳转到 MorganCrest 的官方网站。
+[01:08] 切换语言,在 MorganCrest 官方页面,可以使用翻译功能,
+[01:13] 如浏览器自带的翻译按钮,将内容切换为中文。
+[01:17] 在 MorganCrest 的页面中,点击 证券投资组合。
+[01:21] 就能看到 Morgan Crest所投资的一系列顶级项目,
+[01:25] 包括Ledo等全球知名 Web3项目了。
