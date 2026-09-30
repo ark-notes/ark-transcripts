@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-沙箱重启后一键恢复：规则 + Token + 逐字稿 + 脚本
-用途：每次开工前自动跑（或沙箱重启后跑）
+沙箱重启后一键完整恢复
+拉回：规则 + 需求总表 + 深挖成果 + 知识库 + 逐字稿 + 网站全站
+用法：cd /app/workspace/build && python3 restore.py
 """
-import json, urllib.request, urllib.parse, base64, os, sys
+import json, urllib.request, urllib.parse, base64, os
 
 WS = '/app/workspace/build'
 TRANS_REPO = 'ark-notes/ark-transcripts'
@@ -13,70 +14,102 @@ SITE_REPO = 'ark-notes/ark-notes.github.io'
 def tok(name):
     p = os.path.join(WS, name)
     if not os.path.exists(p):
-        print(f"❌ 缺 {name} —— 需要从对话记录找 Token")
+        print(f"  ❌ 缺 {name}（需从对话记录找 Token）")
         return None
     return open(p).read().strip()
 
-def api(repo, path, token, method='GET', data=None):
+def api(repo, path, token):
     url = f"https://api.github.com/repos/{repo}/contents/" + urllib.parse.quote(path)
-    body = json.dumps(data).encode() if data else None
-    r = urllib.request.Request(url, data=body, method=method,
-        headers={'Authorization': f'token {token}',
-                 'Accept': 'application/vnd.github+json',
-                 'Content-Type': 'application/json'})
+    r = urllib.request.Request(url, headers={
+        'Authorization': f'token {token}',
+        'Accept': 'application/vnd.github+json'})
     return json.loads(urllib.request.urlopen(r, timeout=30).read())
 
-def listdir(repo, token, path=''):
-    try:
-        return api(repo, path, token) if path else json.loads(
-            urllib.request.urlopen(urllib.request.Request(
-                f"https://api.github.com/repos/{repo}/contents/",
-                headers={'Authorization': f'token {token}'}), timeout=30).read())
-    except Exception as e:
-        print(f"  ⚠️ {repo}/{path}: {e}")
-        return []
-
-def pull(repo, token, path, dest):
+def pull_file(repo, path, dest, token):
     try:
         d = api(repo, path, token)
-        raw = base64.b64decode(d['content'])
+        if d.get('type') != 'file':
+            return False
         os.makedirs(os.path.dirname(dest), exist_ok=True)
-        open(dest, 'wb').write(raw)
-        return len(raw)
-    except Exception as e:
-        return None
+        open(dest, 'wb').write(base64.b64decode(d['content']))
+        return True
+    except Exception:
+        return False
+
+def pull_tree(repo, token, repo_path, dest_dir):
+    cnt = 0
+    try:
+        items = api(repo, repo_path, token)
+    except Exception:
+        return 0
+    if not isinstance(items, list):
+        return 0
+    for it in items:
+        if it['type'] == 'dir':
+            cnt += pull_tree(repo, token, it['path'], os.path.join(dest_dir, it['name']))
+        elif it['type'] == 'file':
+            if pull_file(repo, it['path'], os.path.join(dest_dir, it['name']), token):
+                cnt += 1
+    return cnt
 
 def main():
-    print("=" * 50)
-    print("  ARK 项目 — 沙箱恢复")
-    print("=" * 50)
+    print("=" * 56)
+    print("  ARK 项目 · 沙箱完整恢复")
+    print("=" * 56)
     tt = tok('.token')
     ts = tok('.token_site')
 
-    # ① 规则（最重要）
+    # ① 规则 + 需求总表 + 脚本
     if tt:
         os.makedirs(f'{WS}/rules', exist_ok=True)
-        n = pull(TRANS_REPO, tt, '_tools/核心规则.md', f'{WS}/rules/核心规则.md')
-        print(f"① 核心规则: {'✓ ' + str(n) + ' 字' if n else '✗ 失败'}")
+        for src in ['_tools/核心规则.md', '_tools/开工自检.md', '_tools/需求总表.md',
+                    '_tools/BOOT.md', '_tools/恢复脚本.py', '_tools/sync_site.py', '_tools/upload.py']:
+            dst = f'{WS}/' + os.path.basename(src)
+            if '核心规则' in src or '开工自检' in src:
+                dst = f'{WS}/rules/' + os.path.basename(src)
+            if '需求总表' in src:
+                dst = f'{WS}/REQUIREMENTS.md'
+            ok = pull_file(TRANS_REPO, src, dst, tt)
+            print(f"① {'✓' if ok else '✗'} {os.path.basename(src)}")
 
-    # ② 逐字稿
+    # ② 知识库
     if tt:
-        items = listdir(TRANS_REPO, tt)
-        cnt = 0
-        for it in items:
-            if it['type'] == 'file' and it['name'].endswith('.txt'):
-                if pull(TRANS_REPO, tt, it['name'], f'{WS}/transcripts/{it["name"]}'):
-                    cnt += 1
-        print(f"② 逐字稿: ✓ {cnt} 支")
+        n = pull_tree(TRANS_REPO, tt, '_knowledge', f'{WS}/知识库')
+        print(f"② 知识库: ✓ {n} 个文件")
 
-    # ③ 网站
+    # ③ 深挖成果（兜底按已知文件名）
+    if tt:
+        known = ['01_链上查询与安全.md','02_支付卡与金卡.md','03_AI与生态.md',
+                 '04_心法与认知.md','05_流动性与POL.md','06_官方课件精选.md']
+        os.makedirs(f'{WS}/深挖', exist_ok=True)
+        k = sum(1 for f in known
+                if pull_file(TRANS_REPO, f'_knowledge/D1_网站/深挖/{f}', f'{WS}/深挖/{f}', tt))
+        print(f"③ 深挖成果: ✓ {k} 份")
+
+    # ④ 逐字稿
+    if tt:
+        n = pull_tree(TRANS_REPO, tt, '', f'{WS}/transcripts')
+        print(f"④ 逐字稿: ✓ {n} 支")
+
+    # ⑤ 网站全站（根目录扁平）
     if ts:
-        items = listdir(SITE_REPO, ts)
-        print(f"③ 网站根: {len(items)} 项（用 pull_site.py 拉完整站）")
+        try:
+            items = api(SITE_REPO, '', ts)
+            n = 0
+            os.makedirs(f'{WS}/site', exist_ok=True)
+            for it in items:
+                if it['type'] == 'file':
+                    if pull_file(SITE_REPO, it['name'], f'{WS}/site/{it["name"]}', ts):
+                        n += 1
+                elif it['type'] == 'dir':
+                    n += pull_tree(SITE_REPO, ts, it['name'], f'{WS}/site/{it["name"]}')
+            print(f"⑤ 网站全站: ✓ {n} 个文件")
+        except Exception as e:
+            print(f"⑤ 网站全站: ✗ {e}")
 
-    print("=" * 50)
-    print("完成。开工前请先读 rules/核心规则.md")
-    print("=" * 50)
+    print("=" * 56)
+    print("完成。开工前读 REQUIREMENTS.md + rules/核心规则.md")
+    print("=" * 56)
 
 if __name__ == '__main__':
     main()
