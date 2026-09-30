@@ -7,9 +7,10 @@ cd /app/workspace/build && python3 restore.py
 ```
 没有 .token / .token_site → 从对话记录里找（用户存过 5 次以上）。
 
-## 第 1 步：读规则
-- `rules/核心规则.md` ← 最高优先级
-- `rules/项目档案.md` ← 进度
+## 第 1 步：读规则（按顺序）
+1. `REQUIREMENTS.md` ← **需求总表（唯一权威）**
+2. `rules/核心规则.md` ← 行为准则
+3. `rules/项目档案.md` ← 进度
 
 ## 第 2 步：素材在哪
 - 逐字稿：`transcripts/`（105 支）+ `vtranscripts/`（71 支）
