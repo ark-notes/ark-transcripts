@@ -102,12 +102,17 @@ def main():
 
     # ③ 深挖成果（兜底按已知文件名）
     if tt:
-        known = ['01_链上查询与安全.md','02_支付卡与金卡.md','03_AI与生态.md',
-                 '04_心法与认知.md','05_流动性与POL.md','06_官方课件精选.md']
         os.makedirs(f'{WS}/深挖', exist_ok=True)
-        k = sum(1 for f in known
-                if pull_file(TRANS_REPO, f'_knowledge/D1_网站/深挖/{f}', f'{WS}/深挖/{f}', tt))
-        print(f"③ 深挖成果: ✓ {k} 份")
+        try:
+            items = api(TRANS_REPO, '_knowledge/D1_网站/深挖', tt)
+            k = 0
+            for it in items:
+                if it.get('type') == 'file' and it['name'].endswith('.md'):
+                    if pull_file(TRANS_REPO, it['path'], f'{WS}/深挖/{it["name"]}', tt):
+                        k += 1
+            print(f"③ 深挖成果: ✓ {k} 份（自动列举）")
+        except Exception as e:
+            print(f"③ 深挖成果: ✗ {e}")
 
     # ④ 逐字稿
     if tt:
