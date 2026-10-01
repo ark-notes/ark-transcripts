@@ -83,12 +83,15 @@ def main():
     if tt:
         os.makedirs(f'{WS}/rules', exist_ok=True)
         for src in ['_tools/核心规则.md', '_tools/开工自检.md', '_tools/需求总表.md',
-                    '_tools/BOOT.md', '_tools/恢复脚本.py', '_tools/sync_site.py', '_tools/upload.py']:
+                    '_tools/BOOT.md', '_tools/恢复脚本.py', '_tools/sync_site.py', '_tools/upload.py',
+                    '_tools/qa_audit.py']:
             dst = f'{WS}/' + os.path.basename(src)
             if '核心规则' in src or '开工自检' in src:
                 dst = f'{WS}/rules/' + os.path.basename(src)
             if '需求总表' in src:
                 dst = f'{WS}/REQUIREMENTS.md'
+            if 'qa_audit' in src:
+                dst = f'{WS}/qa/audit.py'
             ok = pull_file(TRANS_REPO, src, dst, tt)
             print(f"① {'✓' if ok else '✗'} {os.path.basename(src)}")
 
