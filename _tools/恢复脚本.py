@@ -52,10 +52,30 @@ def pull_tree(repo, token, repo_path, dest_dir):
                 cnt += 1
     return cnt
 
+def ensure_fonts():
+    """沙箱重启会清空系统字体 → 必须重装中文"""
+    import subprocess
+    try:
+        out = subprocess.run(['fc-list'], capture_output=True, text=True, timeout=15).stdout
+        if 'wqy' in out.lower() or 'microhei' in out.lower():
+            print("⓪ 中文字体: ✓ 已存在")
+            return
+    except Exception:
+        pass
+    print("⓪ 中文字体: 缺失 → 安装中...")
+    try:
+        subprocess.run(['sudo', 'agent-pkg', 'install', 'fonts-wqy-microhei'],
+                       capture_output=True, timeout=180)
+        subprocess.run(['fc-cache', '-f'], capture_output=True, timeout=60)
+        print("⓪ 中文字体: ✓ 已安装")
+    except Exception as e:
+        print(f"⓪ 中文字体: ✗ {e}")
+
 def main():
     print("=" * 56)
     print("  ARK 项目 · 沙箱完整恢复")
     print("=" * 56)
+    ensure_fonts()
     tt = tok('.token')
     ts = tok('.token_site')
 
