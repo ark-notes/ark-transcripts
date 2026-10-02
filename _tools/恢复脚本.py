@@ -62,6 +62,11 @@ def ensure_fonts():
             return
     except Exception:
         pass
+    # 顺带装 megatools（读 Mega 分享链接）
+    try:
+        if not shutil.which('megadl'):
+            subprocess.run(['sudo','agent-pkg','install','megatools'],capture_output=True,timeout=180)
+    except Exception: pass
     print("⓪ 中文字体: 缺失 → 安装中...")
     try:
         subprocess.run(['sudo', 'agent-pkg', 'install', 'fonts-wqy-microhei'],
